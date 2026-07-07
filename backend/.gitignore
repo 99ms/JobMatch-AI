@@ -1,15 +1,30 @@
-# Python virtual environment
+# Virtual environment
 venv/
 
 # Python cache
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
 
 # Environment variables
 .env
+.env.*
 
-# VS Code
+# Test & coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# IDEs
 .vscode/
+.idea/
 
-# macOS
+# OS files
 .DS_Store
+Thumbs.db

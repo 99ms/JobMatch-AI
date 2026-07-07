@@ -1,10 +1,22 @@
 import { useState } from "react";
 import api from "./services/api";
+import "./App.css";
+
+interface AnalysisResult {
+  filename: string;
+  pages: number;
+  analysis: {
+    match_score: number;
+    matching_keywords: string[];
+    missing_keywords: string[];
+  };
+}
 
 function App() {
   const [file, setFile] = useState<File | null>(null);
   const [jobDescription, setJobDescription] = useState("");
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleAnalyze = async () => {
     if (!file) {
@@ -18,98 +30,117 @@ function App() {
     }
 
     const formData = new FormData();
-
     formData.append("file", file);
     formData.append("job_description", jobDescription);
 
     try {
-      const response = await api.post("/resume/process", formData);
+      setLoading(true);
+
+      const response = await api.post<AnalysisResult>(
+        "/resume/process",
+        formData
+      );
 
       setResult(response.data);
     } catch (error) {
       console.error(error);
       alert("Analysis failed.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div
-      style={{
-        maxWidth: "800px",
-        margin: "40px auto",
-        fontFamily: "Arial",
-      }}
-    >
-      <h1>JobMatch AI</h1>
-      <p>AI Resume & Job Match Analyzer</p>
+    <div className="app">
+      <div className="container">
 
-      <hr />
-
-      <h3>Upload Resume</h3>
-
-      <input
-        type="file"
-        accept=".pdf"
-        onChange={(e) => {
-          if (e.target.files) {
-            setFile(e.target.files[0]);
-          }
-        }}
-      />
-
-      <br />
-      <br />
-
-      {file && (
-        <p>
-          <strong>Selected File:</strong> {file.name}
+        <h1 className="title">JobMatch AI</h1>
+        <p className="subtitle">
+          AI Resume & Job Match Analyzer
         </p>
-      )}
 
-      <h3>Job Description</h3>
+        <div className="section">
+          <h3>Upload Resume</h3>
 
-      <textarea
-        rows={8}
-        style={{ width: "100%" }}
-        value={jobDescription}
-        onChange={(e) => setJobDescription(e.target.value)}
-      />
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={(e) => {
+              if (e.target.files) {
+                setFile(e.target.files[0]);
+              }
+            }}
+          />
 
-      <br />
-      <br />
-
-      <button onClick={handleAnalyze}>
-        Analyze Resume
-      </button>
-
-      {result && (
-        <div style={{ marginTop: "30px" }}>
-          <hr />
-
-          <h2>Analysis Results</h2>
-
-          <p>
-            <strong>Match Score:</strong>{" "}
-            {result.analysis.match_score}%
-          </p>
-
-          <h3>Matching Keywords</h3>
-
-          <ul>
-            {result.analysis.matching_keywords.map((word: string) => (
-              <li key={word}>{word}</li>
-            ))}
-          </ul>
-
-          <h3>Missing Keywords</h3>
-
-          <ul>
-            {result.analysis.missing_keywords.map((word: string) => (
-              <li key={word}>{word}</li>
-            ))}
-          </ul>
+          {file && (
+            <p>
+              <strong>Selected:</strong> {file.name}
+            </p>
+          )}
         </div>
-      )}
+
+        <div className="section">
+          <h3>Job Description</h3>
+
+          <textarea
+            value={jobDescription}
+            onChange={(e) =>
+              setJobDescription(e.target.value)
+            }
+            placeholder="Paste the job description here..."
+          />
+        </div>
+
+        <button
+          onClick={handleAnalyze}
+          disabled={loading}
+        >
+          {loading ? "Analyzing..." : "Analyze Resume"}
+        </button>
+
+        {result && (
+          <div className="results">
+
+            <div className="score-card">
+              <h2>Match Score</h2>
+
+              <div className="score">
+                {result.analysis.match_score}%
+              </div>
+            </div>
+
+            <div className="keyword-grid">
+
+              <div className="keyword-box">
+                <h3>✅ Matching Skills</h3>
+
+                <ul>
+                  {result.analysis.matching_keywords.map(
+                    (skill) => (
+                      <li key={skill}>{skill}</li>
+                    )
+                  )}
+                </ul>
+              </div>
+
+              <div className="keyword-box">
+                <h3>❌ Missing Skills</h3>
+
+                <ul>
+                  {result.analysis.missing_keywords.map(
+                    (skill) => (
+                      <li key={skill}>{skill}</li>
+                    )
+                  )}
+                </ul>
+              </div>
+
+            </div>
+
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }
