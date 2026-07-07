@@ -1,4 +1,9 @@
 # JobMatch AI
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688)
+![React](https://img.shields.io/badge/React-61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6)
+![License](https://img.shields.io/badge/License-MIT-green)
 AI-powered ATS Resume Analyzer
 
 JobMatch AI is a full-stack ATS resume analyzer that evaluates resumes against job descriptions and provides detailed compatibility scores, missing skill analysis, keyword matching, and actionable recommendations to help job seekers improve their resumes.
