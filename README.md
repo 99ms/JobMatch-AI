@@ -1,28 +1,31 @@
 # JobMatch AI
-![Python](https://img.shields.io/badge/Python-3.11-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-009688)
-![React](https://img.shields.io/badge/React-61DAFB)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6)
-![License](https://img.shields.io/badge/License-MIT-green)
-AI-powered ATS Resume Analyzer
 
-JobMatch AI is a full-stack ATS resume analyzer that evaluates resumes against job descriptions and provides detailed compatibility scores, missing skill analysis, keyword matching, and actionable recommendations to help job seekers improve their resumes.
+![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green)
+
+### AI-powered Resume Screening & ATS Analysis Platform
+
+JobMatch AI is a full-stack web application that evaluates resumes against job descriptions and provides ATS compatibility scores, missing skill analysis, keyword matching, and actionable recommendations to help job seekers optimize their resumes before applying.
+
 ---
 
-## Features
+##  Features
 
 - Upload resumes in PDF format
-- Analyze resumes against custom job descriptions
-- Generate an ATS compatibility score
+- Compare resumes against any job description
+- Generate ATS compatibility scores
 - Identify matching and missing skills
-- Highlight keyword gaps
-- Provide suggestions to improve resume relevance
-- Modern React-based user interface
-- RESTful API built with FastAPI
+- Detect missing keywords
+- Receive actionable resume improvement suggestions
+- FastAPI REST API backend
+- Modern React + TypeScript frontend
 
 ---
 
-## Tech Stack
+## 🛠 Tech Stack
 
 ### Frontend
 
@@ -42,14 +45,14 @@ JobMatch AI is a full-stack ATS resume analyzer that evaluates resumes against j
 - PDF text extraction
 - Regular expressions
 - NLP-inspired keyword matching
-- Custom scoring algorithm
+- Custom ATS scoring algorithm
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
-```
-resume-analyzer/
+```text
+JobMatch-AI/
 │
 ├── backend/
 │   ├── app/
@@ -66,23 +69,33 @@ resume-analyzer/
 │   ├── package.json
 │   └── vite.config.ts
 │
+├── .gitignore
+├── LICENSE
 └── README.md
 ```
 
 ---
 
-## Getting Started
+## 🚀 Getting Started
 
-### Clone the repository
+### Prerequisites
+
+- Python 3.11+
+- Node.js 18+
+- npm
+
+---
+
+### Clone the Repository
 
 ```bash
-git clone https://github.com/99ms/AI-Resume-Analyzer.git
-cd AI-Resume-Analyzer
+git clone https://github.com/99ms/JobMatch-AI.git
+cd JobMatch-AI
 ```
 
 ---
 
-## Backend Setup
+## ⚙ Backend Setup
 
 ```bash
 cd backend
@@ -100,7 +113,7 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
-The backend will run on:
+Backend:
 
 ```
 http://127.0.0.1:8000
@@ -108,7 +121,7 @@ http://127.0.0.1:8000
 
 ---
 
-## Frontend Setup
+## 💻 Frontend Setup
 
 Open a second terminal.
 
@@ -120,7 +133,7 @@ npm install
 npm run dev
 ```
 
-The frontend will run on:
+Frontend:
 
 ```
 http://localhost:5173
@@ -128,7 +141,7 @@ http://localhost:5173
 
 ---
 
-## API Endpoints
+## 🔌 API
 
 | Method | Endpoint | Description |
 |---------|----------|-------------|
@@ -136,37 +149,47 @@ http://localhost:5173
 
 ---
 
-## How It Works
+## ⚙ How It Works
 
 1. Upload a resume in PDF format.
-2. Enter a target job description.
-3. The backend extracts text from the uploaded resume.
-4. Resume content is compared against the job description.
-5. Matching keywords, missing skills, and ATS compatibility are calculated.
-6. The frontend presents a structured report with recommendations.
+2. Paste or enter a job description.
+3. The backend extracts text from the uploaded PDF.
+4. The resume is analyzed against the job description.
+5. ATS compatibility, keyword matching, and missing skills are calculated.
+6. Results are returned to the React frontend for visualization.
 
 ---
 
-## Future Improvements
+## 📷 Screenshots
 
-- AI-generated resume recommendations
+> Screenshots coming soon.
+
+---
+
+## 🚀 Future Improvements
+
+- AI-generated resume rewriting
 - Semantic similarity using sentence embeddings
-- Multi-page resume optimization
-- Support for DOCX resumes
-- Resume history and saved analyses
+- DOCX resume support
+- Resume history
 - User authentication
 - Recruiter dashboard
+- Cover letter generation
+- Saved job descriptions
+- Export analysis as PDF
 
 ---
 
-## License
+## 📄 License
 
 This project is licensed under the MIT License.
 
 ---
 
-## Author
+## 👨‍💻 Author
 
 **Arsh Zayd**
 
 GitHub: https://github.com/99ms
+
+---
