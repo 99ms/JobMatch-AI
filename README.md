@@ -1,4 +1,5 @@
-# AI Resume Analyzer
+# JobMatch AI
+AI-powered ATS Resume Analyzer
 
 An AI-powered web application that analyzes resumes against job descriptions and provides an ATS-style compatibility score along with actionable feedback. Built with **FastAPI** and **React**, the application helps users identify missing skills, improve keyword optimization, and better tailor resumes for specific roles.
 
