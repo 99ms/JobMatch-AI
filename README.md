@@ -165,5 +165,3 @@ This project is licensed under the MIT License.
 **Arsh Zayd**
 
 GitHub: https://github.com/99ms
-
-LinkedIn: *(Add your LinkedIn URL here.)*
