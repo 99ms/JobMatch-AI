@@ -1,22 +1,14 @@
 import { useState } from "react";
-import api from "./services/api";
+import { analyzeResume } from "./services/api";
+import type { AnalysisResponse } from "./types/resume";
 import "./App.css";
-
-interface AnalysisResult {
-  filename: string;
-  pages: number;
-  analysis: {
-    match_score: number;
-    matching_keywords: string[];
-    missing_keywords: string[];
-  };
-}
 
 function App() {
   const [file, setFile] = useState<File | null>(null);
   const [jobDescription, setJobDescription] = useState("");
-  const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [result, setResult] = useState<AnalysisResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const handleAnalyze = async () => {
     if (!file) {
@@ -29,22 +21,14 @@ function App() {
       return;
     }
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("job_description", jobDescription);
-
+    setErrorMsg("");
     try {
       setLoading(true);
-
-      const response = await api.post<AnalysisResult>(
-        "/resume/process",
-        formData
-      );
-
-      setResult(response.data);
-    } catch (error) {
+      const data = await analyzeResume({ file, jobDescription });
+      setResult(data);
+    } catch (error: any) {
       console.error(error);
-      alert("Analysis failed.");
+      setErrorMsg(error.message || "Analysis failed.");
     } finally {
       setLoading(false);
     }
@@ -53,15 +37,11 @@ function App() {
   return (
     <div className="app">
       <div className="container">
-
         <h1 className="title">JobMatch AI</h1>
-        <p className="subtitle">
-          AI Resume & Job Match Analyzer
-        </p>
+        <p className="subtitle">AI Resume & Job Match Analyzer</p>
 
         <div className="section">
           <h3>Upload Resume</h3>
-
           <input
             type="file"
             accept=".pdf"
@@ -71,7 +51,6 @@ function App() {
               }
             }}
           />
-
           {file && (
             <p>
               <strong>Selected:</strong> {file.name}
@@ -81,65 +60,71 @@ function App() {
 
         <div className="section">
           <h3>Job Description</h3>
-
           <textarea
             value={jobDescription}
-            onChange={(e) =>
-              setJobDescription(e.target.value)
-            }
+            onChange={(e) => setJobDescription(e.target.value)}
             placeholder="Paste the job description here..."
           />
         </div>
 
-        <button
-          onClick={handleAnalyze}
-          disabled={loading}
-        >
+        {errorMsg && <div className="error">{errorMsg}</div>}
+
+        <button onClick={handleAnalyze} disabled={loading}>
           {loading ? "Analyzing..." : "Analyze Resume"}
         </button>
 
         {result && (
           <div className="results">
-
             <div className="score-card">
-              <h2>Match Score</h2>
-
-              <div className="score">
-                {result.analysis.match_score}%
+              <h2>ATS Match Score</h2>
+              <div className="score">{result.match_score}%</div>
+              
+              <div className="statistics">
+                <p>Required Skills Found: {result.statistics.total_required_skills}</p>
+                <p>Skills Matched: {result.statistics.total_matched_skills}</p>
+                <p>Coverage: {result.statistics.coverage_percentage}%</p>
               </div>
             </div>
 
-            <div className="keyword-grid">
-
+            <div className="structured-grid">
               <div className="keyword-box">
-                <h3>✅ Matching Skills</h3>
-
-                <ul>
-                  {result.analysis.matching_keywords.map(
-                    (skill) => (
-                      <li key={skill}>{skill}</li>
-                    )
-                  )}
-                </ul>
+                <h3>✅ Matched Skills</h3>
+                {result.matched_skills.length === 0 ? (
+                  <p>No matches found.</p>
+                ) : (
+                  result.matched_skills.map((cat, idx) => (
+                    <div key={idx} className="category-group">
+                      <h4 className="category-title">{cat.category.toUpperCase()}</h4>
+                      <ul>
+                        {cat.matched_skills.map((skill) => (
+                          <li key={skill}>{skill}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))
+                )}
               </div>
 
               <div className="keyword-box">
                 <h3>❌ Missing Skills</h3>
-
-                <ul>
-                  {result.analysis.missing_keywords.map(
-                    (skill) => (
-                      <li key={skill}>{skill}</li>
-                    )
-                  )}
-                </ul>
+                {result.missing_skills.length === 0 ? (
+                  <p>No missing skills!</p>
+                ) : (
+                  result.missing_skills.map((cat, idx) => (
+                    <div key={idx} className="category-group">
+                      <h4 className="category-title">{cat.category.toUpperCase()}</h4>
+                      <ul>
+                        {cat.missing_skills.map((skill) => (
+                          <li key={skill}>{skill}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))
+                )}
               </div>
-
             </div>
-
           </div>
         )}
-
       </div>
     </div>
   );

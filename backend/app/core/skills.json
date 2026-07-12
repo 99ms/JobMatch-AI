@@ -1,0 +1,142 @@
+{
+  "languages": {
+    "category_weight": 3,
+    "skills": [
+      {
+        "name": "python",
+        "weight": 5,
+        "aliases": ["python", "python3"]
+      },
+      {
+        "name": "javascript",
+        "weight": 5,
+        "aliases": ["javascript", "js"]
+      },
+      {
+        "name": "typescript",
+        "weight": 5,
+        "aliases": ["typescript", "ts"]
+      },
+      {
+        "name": "java",
+        "weight": 4,
+        "aliases": ["java"]
+      },
+      {
+        "name": "c++",
+        "weight": 4,
+        "aliases": ["c++", "cpp"]
+      },
+      {
+        "name": "go",
+        "weight": 4,
+        "aliases": ["go", "golang"]
+      }
+    ]
+  },
+  "frameworks": {
+    "category_weight": 3,
+    "skills": [
+      {
+        "name": "react",
+        "weight": 5,
+        "aliases": ["react", "reactjs", "react.js"]
+      },
+      {
+        "name": "fastapi",
+        "weight": 5,
+        "aliases": ["fastapi"]
+      },
+      {
+        "name": "django",
+        "weight": 4,
+        "aliases": ["django"]
+      },
+      {
+        "name": "node.js",
+        "weight": 5,
+        "aliases": ["node.js", "nodejs", "node"]
+      },
+      {
+        "name": "vue",
+        "weight": 4,
+        "aliases": ["vue", "vue.js", "vuejs"]
+      }
+    ]
+  },
+  "databases": {
+    "category_weight": 2,
+    "skills": [
+      {
+        "name": "postgresql",
+        "weight": 5,
+        "aliases": ["postgresql", "postgres", "psql"]
+      },
+      {
+        "name": "mysql",
+        "weight": 4,
+        "aliases": ["mysql"]
+      },
+      {
+        "name": "mongodb",
+        "weight": 4,
+        "aliases": ["mongodb", "mongo"]
+      },
+      {
+        "name": "redis",
+        "weight": 3,
+        "aliases": ["redis"]
+      }
+    ]
+  },
+  "cloud": {
+    "category_weight": 2,
+    "skills": [
+      {
+        "name": "aws",
+        "weight": 5,
+        "aliases": ["aws", "amazon web services"]
+      },
+      {
+        "name": "gcp",
+        "weight": 4,
+        "aliases": ["gcp", "google cloud"]
+      },
+      {
+        "name": "azure",
+        "weight": 4,
+        "aliases": ["azure"]
+      },
+      {
+        "name": "docker",
+        "weight": 5,
+        "aliases": ["docker"]
+      },
+      {
+        "name": "kubernetes",
+        "weight": 5,
+        "aliases": ["kubernetes", "k8s"]
+      }
+    ]
+  },
+  "tools": {
+    "category_weight": 1,
+    "skills": [
+      {
+        "name": "git",
+        "weight": 5,
+        "aliases": ["git"]
+      },
+      {
+        "name": "linux",
+        "weight": 4,
+        "aliases": ["linux"]
+      },
+      {
+        "name": "jira",
+        "weight": 3,
+        "aliases": ["jira"]
+      }
+    ]
+  }
+}
