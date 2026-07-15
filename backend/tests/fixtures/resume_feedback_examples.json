@@ -1,0 +1,86 @@
+[
+  {
+    "scenario": "excellent_resume_high_ats_score",
+    "input": {
+      "job_description": "Backend engineer requiring Python, FastAPI, PostgreSQL, Docker, and AWS.",
+      "resume_stats": {
+        "match_score": 100.0,
+        "statistics": {"total_points_earned": 54, "total_points_possible": 54},
+        "matching_keywords": ["aws", "docker", "fastapi", "postgresql", "python"],
+        "missing_keywords": [],
+        "sections": [{"section_name": "experience", "matched_skills": ["aws", "fastapi", "python"]}]
+      }
+    },
+    "output": {
+      "overall_assessment": "The ATS analysis reports a 100.0% match, with all 54 available points earned across the required skills.",
+      "strengths": ["ATS matched Python, FastAPI, PostgreSQL, Docker, and AWS.", "The experience section contains Python, FastAPI, and AWS matches."],
+      "weaknesses": [],
+      "missing_skills_explanation": [],
+      "ats_optimization": [],
+      "action_plan": ["Preserve the accurate experience-section evidence for the currently matched Python, FastAPI, and AWS skills."]
+    }
+  },
+  {
+    "scenario": "average_resume",
+    "input": {
+      "job_description": "Full-stack engineer requiring Python, React, TypeScript, PostgreSQL, Docker, and AWS.",
+      "resume_stats": {
+        "match_score": 58.33,
+        "statistics": {"total_points_earned": 42, "total_points_possible": 72},
+        "matching_keywords": ["docker", "python", "react"],
+        "missing_keywords": ["aws", "postgresql", "typescript"],
+        "sections": [{"section_name": "skills", "matched_skills": ["docker", "python", "react"]}]
+      }
+    },
+    "output": {
+      "overall_assessment": "The ATS analysis reports a 58.33% match, supported by Python, React, and Docker matches but reduced by the reported missing TypeScript, PostgreSQL, and AWS skills.",
+      "strengths": ["The skills section contains the ATS-matched Python, React, and Docker technologies."],
+      "weaknesses": ["ATS reports TypeScript, PostgreSQL, and AWS as missing for this role."],
+      "missing_skills_explanation": ["TypeScript, PostgreSQL, and AWS are listed as missing by ATS; the input provides no evidence that they appear in the resume."],
+      "ats_optimization": ["If accurate, add specific skills or experience-section bullets for the ATS-missing TypeScript, PostgreSQL, and AWS technologies."],
+      "action_plan": ["If you have relevant experience, add an accurate TypeScript example because ATS reports it as missing.", "If accurate, add a PostgreSQL or AWS project/experience bullet tied to the reported missing skills."]
+    }
+  },
+  {
+    "scenario": "poor_resume_very_low_ats_score",
+    "input": {
+      "job_description": "Platform engineer requiring Python, FastAPI, PostgreSQL, Docker, Kubernetes, and AWS.",
+      "resume_stats": {
+        "match_score": 10.0,
+        "statistics": {"total_points_earned": 3, "total_points_possible": 30},
+        "matching_keywords": ["git"],
+        "missing_keywords": ["aws", "docker", "fastapi", "kubernetes", "postgresql", "python"],
+        "sections": [{"section_name": "skills", "matched_skills": ["git"]}]
+      }
+    },
+    "output": {
+      "overall_assessment": "The ATS analysis reports a 10.0% match: Git is matched, while the core platform technologies listed by ATS are missing.",
+      "strengths": ["The skills section contains the ATS-matched Git skill."],
+      "weaknesses": ["ATS reports Python, FastAPI, PostgreSQL, Docker, Kubernetes, and AWS as missing."],
+      "missing_skills_explanation": ["The ATS analysis identifies the missing core technologies as Python, FastAPI, PostgreSQL, Docker, Kubernetes, and AWS; it supplies no resume evidence for them."],
+      "ats_optimization": ["If truthful, add concise skills and project or experience bullets for the ATS-missing core technologies rather than listing unsupported keywords."],
+      "action_plan": ["If accurate, add evidence of Python and FastAPI work because ATS reports both as missing.", "If accurate, add a Docker, Kubernetes, or AWS deployment example tied to the reported missing skills.", "If accurate, include PostgreSQL experience in the relevant resume section."]
+    }
+  },
+  {
+    "scenario": "missing_core_technologies",
+    "input": {
+      "job_description": "Data engineer requiring Python, SQL, PostgreSQL, AWS, and Docker.",
+      "resume_stats": {
+        "match_score": 40.0,
+        "statistics": {"total_points_earned": 12, "total_points_possible": 30},
+        "matching_keywords": ["python", "sql"],
+        "missing_keywords": ["aws", "docker", "postgresql"],
+        "sections": [{"section_name": "projects", "matched_skills": ["python", "sql"]}]
+      }
+    },
+    "output": {
+      "overall_assessment": "The ATS analysis reports a 40.0% match: the projects section supports Python and SQL, while PostgreSQL, Docker, and AWS remain missing.",
+      "strengths": ["The projects section contains the ATS-matched Python and SQL skills."],
+      "weaknesses": ["ATS reports PostgreSQL, Docker, and AWS as missing core technologies."],
+      "missing_skills_explanation": ["PostgreSQL, Docker, and AWS are specifically identified as missing by ATS, so they should not be claimed without accurate supporting experience."],
+      "ats_optimization": ["If accurate, add project details that demonstrate the ATS-missing PostgreSQL, Docker, or AWS technologies."],
+      "action_plan": ["If you have relevant work, add an accurate PostgreSQL project detail because ATS reports it as missing.", "If accurate, add a Docker or AWS implementation detail in the projects section."]
+    }
+  }
+]

@@ -21,3 +21,8 @@ class AIRateLimitError(AIException):
 class InvalidAIResponseError(AIException):
     """Raised when the provider returns a malformed or unexpected response."""
     pass
+
+
+class AIOutputValidationError(AIException):
+    """Raised when a successful provider response fails output parsing or validation."""
+    pass

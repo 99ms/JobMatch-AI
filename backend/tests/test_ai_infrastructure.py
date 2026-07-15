@@ -1,5 +1,7 @@
 import pytest
 import asyncio
+import json
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -11,6 +13,7 @@ from app.core.exceptions import (
     AITimeoutError,
     AIRateLimitError,
     InvalidAIResponseError,
+    AIOutputValidationError,
 )
 from app.utils.prompt_manager import PromptManager
 from app.utils.token_utils import estimate_tokens
@@ -21,6 +24,7 @@ from app.schemas.ai import (
     ProviderResponse,
     TokenUsage,
     ResumeFeedbackRequest,
+    ResumeFeedbackResponse,
     ResumeTailorRequest,
     CoverLetterRequest,
     InterviewQuestionsRequest,
@@ -56,11 +60,26 @@ def make_provider_response(content: str = "mock") -> ProviderResponse:
     )
 
 
+def make_resume_feedback_json(**overrides) -> str:
+    payload = {
+        "overall_assessment": "The ATS analysis reports a strong match.",
+        "strengths": ["ATS matched Python."],
+        "weaknesses": [],
+        "missing_skills_explanation": [],
+        "ats_optimization": [],
+        "action_plan": ["Preserve the ATS-matched Python evidence."],
+    }
+    payload.update(overrides)
+    return json.dumps(payload)
+
+
 class MockProvider(BaseAIProvider):
     """In-process provider that never makes network calls."""
 
-    def __init__(self, response_content: str = "mock response"):
-        self.response_content = response_content
+    def __init__(self, response_content: str | None = None):
+        self.response_content = (
+            make_resume_feedback_json() if response_content is None else response_content
+        )
         self.model = "mock-model"
 
     async def generate(self, prompt: str) -> ProviderResponse:
@@ -140,6 +159,26 @@ class TestPromptManager:
     def test_missing_version_raises_file_not_found(self):
         with pytest.raises(FileNotFoundError):
             PromptManager.get_prompt("resume_feedback", "v999")
+
+    def test_resume_feedback_prompt_defines_the_json_contract(self):
+        content = PromptManager.get_prompt("resume_feedback", "v1")
+
+        assert "Return valid JSON only" in content
+        assert "{job_description}" in content
+        assert "{resume_stats}" in content
+        for field in [
+            "overall_assessment",
+            "strengths",
+            "weaknesses",
+            "missing_skills_explanation",
+            "ats_optimization",
+            "action_plan",
+        ]:
+            assert field in content
+
+        assert "Never recalculate or reinterpret the ATS score" in content
+        assert "detect additional skills" in content
+        assert "invent resume experience" in content
 
 
 # ---------------------------------------------------------------------------
@@ -307,7 +346,36 @@ class TestOpenAIProvider:
 
 
 # ---------------------------------------------------------------------------
-# 6. AIService — mocked provider
+# 7. Resume feedback prompt evaluation fixtures
+# ---------------------------------------------------------------------------
+
+class TestResumeFeedbackExamples:
+    @staticmethod
+    def _load_examples():
+        fixture_path = Path(__file__).parent / "fixtures" / "resume_feedback_examples.json"
+        return json.loads(fixture_path.read_text(encoding="utf-8"))
+
+    def test_examples_cover_required_ats_scenarios(self):
+        scenarios = {example["scenario"] for example in self._load_examples()}
+
+        assert scenarios == {
+            "excellent_resume_high_ats_score",
+            "average_resume",
+            "poor_resume_very_low_ats_score",
+            "missing_core_technologies",
+        }
+
+    @pytest.mark.parametrize("example", _load_examples.__func__())
+    def test_example_outputs_match_resume_feedback_contract(self, example):
+        response = ResumeFeedbackResponse.model_validate(example["output"])
+
+        assert response.overall_assessment
+        assert len(response.action_plan) <= 3
+        assert all(isinstance(item, str) and item for item in response.action_plan)
+
+
+# ---------------------------------------------------------------------------
+# 8. AIService — mocked provider
 # ---------------------------------------------------------------------------
 
 class TestAIService:
@@ -315,7 +383,7 @@ class TestAIService:
         service = AIService(provider=MockProvider())
         assert service._provider is not None
 
-    def test_generate_resume_feedback_returns_stub(self):
+    def test_generate_resume_feedback_returns_validated_response(self):
         service = AIService(provider=MockProvider())
         request = ResumeFeedbackRequest(
             job_description="Backend developer role",
@@ -324,8 +392,39 @@ class TestAIService:
         response = asyncio.get_event_loop().run_until_complete(
             service.generate_resume_feedback(request)
         )
-        assert response.overall_feedback  # non-empty stub string
-        assert isinstance(response.improvements, list)
+        assert response.overall_assessment == "The ATS analysis reports a strong match."
+        assert response.strengths == ["ATS matched Python."]
+        assert response.weaknesses == []
+        assert response.missing_skills_explanation == []
+        assert response.ats_optimization == []
+        assert response.action_plan == ["Preserve the ATS-matched Python evidence."]
+
+    @pytest.mark.parametrize(
+        ("response_content", "diagnostic"),
+        [
+            ("not-json", "not valid JSON"),
+            ("{}", "failed schema validation"),
+            (
+                make_resume_feedback_json(strengths="Python"),
+                "failed schema validation",
+            ),
+            ("", "is empty"),
+            (
+                make_resume_feedback_json(unexpected="value"),
+                "failed schema validation",
+            ),
+        ],
+    )
+    def test_generate_resume_feedback_rejects_invalid_model_output(
+        self, response_content, diagnostic
+    ):
+        service = AIService(provider=MockProvider(response_content=response_content))
+        request = ResumeFeedbackRequest(job_description="Backend role", resume_stats={})
+
+        with pytest.raises(AIOutputValidationError, match=diagnostic):
+            asyncio.get_event_loop().run_until_complete(
+                service.generate_resume_feedback(request)
+            )
 
     def test_tailor_resume_returns_stub(self):
         service = AIService(provider=MockProvider())
@@ -409,6 +508,7 @@ class TestExceptions:
             AITimeoutError,
             AIRateLimitError,
             InvalidAIResponseError,
+            AIOutputValidationError,
         ]:
             assert issubclass(exc_class, AIException)
 
@@ -420,6 +520,7 @@ class TestExceptions:
             AITimeoutError,
             AIRateLimitError,
             InvalidAIResponseError,
+            AIOutputValidationError,
         ]:
             assert issubclass(exc_class, Exception)
 

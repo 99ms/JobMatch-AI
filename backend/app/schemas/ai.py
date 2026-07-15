@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Dict, Any, Optional
 
 # --- Provider Independent Models ---
@@ -37,8 +37,14 @@ class InterviewQuestionsRequest(BaseAIRequest):
 # --- Future Operation Responses ---
 
 class ResumeFeedbackResponse(BaseModel):
-    overall_feedback: str
-    improvements: List[str]
+    model_config = ConfigDict(extra="forbid")
+
+    overall_assessment: str
+    strengths: List[str]
+    weaknesses: List[str]
+    missing_skills_explanation: List[str]
+    ats_optimization: List[str]
+    action_plan: List[str]
 
 class ResumeTailorResponse(BaseModel):
     tailored_summary: str

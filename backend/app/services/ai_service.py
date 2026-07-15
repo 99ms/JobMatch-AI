@@ -17,6 +17,7 @@ from app.schemas.ai import (
     InterviewQuestionsResponse,
 )
 from app.utils.prompt_manager import PromptManager
+from app.utils.response_parser import ResponseParser
 
 logger = logging.getLogger(__name__)
 
@@ -107,24 +108,18 @@ class AIService:
 
     # ------------------------------------------------------------------
     # Public interface — infrastructure stubs
-    # These methods are wired end-to-end (provider + logging + schemas)
-    # but return mock data until Milestone 3 fills in prompt engineering.
     # ------------------------------------------------------------------
 
     async def generate_resume_feedback(
         self, request: ResumeFeedbackRequest
     ) -> ResumeFeedbackResponse:
         """
-        Stub: loads the prompt template and returns a placeholder response.
-        Milestone 3 will replace the placeholder with real parsed output.
+        Loads the feedback prompt, delegates generation, and returns validated output.
         """
         prompt = PromptManager.get_prompt("resume_feedback", "v1")
         # Milestone 3: format prompt with request.resume_stats / request.job_description
-        _ = await self._call_provider("generate_resume_feedback", prompt)
-        return ResumeFeedbackResponse(
-            overall_feedback="[Stub] Feedback will be generated in Milestone 3.",
-            improvements=[],
-        )
+        content = await self._call_provider("generate_resume_feedback", prompt)
+        return ResponseParser.parse_resume_feedback(content)
 
     async def tailor_resume(
         self, request: ResumeTailorRequest
