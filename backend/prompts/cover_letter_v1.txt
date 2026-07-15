@@ -1,0 +1,3 @@
+Write a cover letter based on this resume and job description.
+Job Description: {job_description}
+Resume Stats: {resume_stats}

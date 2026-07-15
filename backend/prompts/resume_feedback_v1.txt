@@ -1,0 +1,3 @@
+Provide feedback on the following resume based on this job description:
+Job Description: {job_description}
+Resume Stats: {resume_stats}

@@ -1,0 +1,7 @@
+Looking for a Backend Developer.
+Requirements:
+- Python
+- FastAPI
+- PostgreSQL
+- Docker
+- AWS

@@ -1,0 +1,3 @@
+Tailor this resume to better match the job description.
+Job Description: {job_description}
+Resume Stats: {resume_stats}

@@ -2,6 +2,7 @@ import re
 import json
 import os
 from pathlib import Path
+from .section_service import parse_sections
 
 # Load skills database
 SKILLS_FILE = Path(__file__).parent.parent / "core" / "skills.json"
@@ -48,16 +49,20 @@ def extract_skills_by_category(text: str) -> dict:
             
     return extracted
 
-def calculate_weighted_score(matched_categories: dict, missing_categories: dict) -> float:
+def calculate_weighted_score(matched_categories: dict, missing_categories: dict) -> tuple[float, float, float, dict]:
     """Calculates the ATS match score based on individual skill weights and category weights."""
-    points_earned = 0
-    total_points_possible = 0
+    total_points_earned = 0.0
+    total_points_possible = 0.0
+    category_points = {}
     
     for category, data in SKILLS_DB.items():
         cat_weight = data.get("category_weight", 1)
         
         matched_set = matched_categories.get(category, set())
         missing_set = missing_categories.get(category, set())
+        
+        cat_earned = 0.0
+        cat_possible = 0.0
         
         for skill_obj in data.get("skills", []):
             name = skill_obj["name"]
@@ -67,14 +72,22 @@ def calculate_weighted_score(matched_categories: dict, missing_categories: dict)
             point_value = skill_weight * cat_weight
             
             if name in matched_set or name in missing_set:
+                cat_possible += point_value
                 total_points_possible += point_value
                 if name in matched_set:
-                    points_earned += point_value
+                    cat_earned += point_value
+                    total_points_earned += point_value
+                    
+        category_points[category] = {
+            "earned": cat_earned,
+            "possible": cat_possible
+        }
                     
     if total_points_possible == 0:
-        return 0.0
+        return 0.0, 0.0, 0.0, category_points
         
-    return round((points_earned / total_points_possible) * 100, 2)
+    score = round((total_points_earned / total_points_possible) * 100, 2)
+    return score, total_points_earned, total_points_possible, category_points
 
 def analyze_resume(resume_text: str, job_description: str) -> dict:
     """Orchestrates the ATS scoring process."""
@@ -112,8 +125,27 @@ def analyze_resume(resume_text: str, job_description: str) -> dict:
         total_matched += len(matched)
         total_missing += len(missing)
 
-    score = calculate_weighted_score(matched_structured, missing_structured)
+    score, total_earned, total_possible, cat_points = calculate_weighted_score(matched_structured, missing_structured)
     coverage = round((total_matched / max(total_req, 1)) * 100, 2)
+    
+    # Process sections
+    sections_dict = parse_sections(resume_text)
+    sections_list = []
+    
+    for sec_name, sec_text in sections_dict.items():
+        sec_skills_grouped = extract_skills_by_category(sec_text)
+        sec_matched = []
+        # Only include skills that are actually in the job description (matched skills)
+        for category, sec_set in sec_skills_grouped.items():
+            job_set = job_skills_grouped.get(category, set())
+            valid_matches = sec_set & job_set
+            sec_matched.extend(list(valid_matches))
+            
+        if sec_matched:
+            sections_list.append({
+                "section_name": sec_name,
+                "matched_skills": sorted(sec_matched)
+            })
     
     # Format for response
     matched_list = []
@@ -124,12 +156,16 @@ def analyze_resume(resume_text: str, job_description: str) -> dict:
             m_skills = matched_structured.get(category, [])
             miss_skills = missing_structured.get(category, [])
             
+            c_points = cat_points.get(category, {"earned": 0.0, "possible": 0.0})
+            
             if m_skills or miss_skills:
                 cat_obj = {
                     "category": category,
                     "weight": data.get("category_weight", 1),
                     "matched_skills": m_skills,
-                    "missing_skills": miss_skills
+                    "missing_skills": miss_skills,
+                    "points_earned": c_points["earned"],
+                    "points_possible": c_points["possible"]
                 }
                 
                 if m_skills:
@@ -147,6 +183,9 @@ def analyze_resume(resume_text: str, job_description: str) -> dict:
             "total_required_skills": total_req,
             "total_matched_skills": total_matched,
             "total_missing_skills": total_missing,
-            "coverage_percentage": coverage
-        }
+            "coverage_percentage": coverage,
+            "total_points_earned": total_earned,
+            "total_points_possible": total_possible
+        },
+        "sections": sections_list
     }

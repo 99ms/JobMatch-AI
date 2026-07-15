@@ -1,0 +1,13 @@
+Arsh Zayd
+Backend Developer
+
+SUMMARY
+Experienced backend developer building scalable APIs.
+
+EXPERIENCE
+Software Engineer at TechCorp
+- Built microservices using Python and FastAPI
+- Deployed applications on AWS
+
+SKILLS
+Python, FastAPI, SQL, Docker, Git
