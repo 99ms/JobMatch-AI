@@ -1,6 +1,7 @@
 import pytest
 import asyncio
-from unittest.mock import AsyncMock, patch
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from app.core.config import settings
 from app.core.exceptions import (
@@ -25,6 +26,20 @@ from app.schemas.ai import (
     InterviewQuestionsRequest,
 )
 from app.services.ai_service import AIService
+
+
+def make_openai_completion(
+    content: str | None = "Generated response",
+    prompt_tokens: int | None = 12,
+    completion_tokens: int | None = 8,
+) -> SimpleNamespace:
+    return SimpleNamespace(
+        choices=[SimpleNamespace(message=SimpleNamespace(content=content))],
+        usage=SimpleNamespace(
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
+        ),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -193,6 +208,102 @@ class TestProviderAbstraction:
         assert r.model == "mock-model"
         assert r.duration_ms >= 0
         assert r.token_usage.total_tokens == 15
+
+
+# ---------------------------------------------------------------------------
+# 6. OpenAI Provider -- mocked SDK
+# ---------------------------------------------------------------------------
+
+class TestOpenAIProvider:
+    def _make_provider(self, completion: SimpleNamespace):
+        client = MagicMock()
+        client.chat.completions.create = AsyncMock(return_value=completion)
+
+        with patch.object(settings, "OPENAI_API_KEY", "test-key"):
+            with patch("app.providers.openai_provider.AsyncOpenAI", return_value=client) as client_class:
+                provider = OpenAIProvider()
+
+        return provider, client, client_class
+
+    def test_generate_returns_provider_independent_response(self):
+        provider, client, client_class = self._make_provider(
+            make_openai_completion("Useful response", prompt_tokens=11, completion_tokens=7)
+        )
+
+        response = asyncio.get_event_loop().run_until_complete(
+            provider.generate("test prompt")
+        )
+
+        client_class.assert_called_once_with(api_key="test-key")
+        client.chat.completions.create.assert_awaited_once_with(
+            model=settings.AI_MODEL_NAME,
+            messages=[{"role": "user", "content": "test prompt"}],
+            temperature=settings.AI_TEMPERATURE,
+            max_tokens=settings.AI_MAX_TOKENS,
+        )
+        assert response.content == "Useful response"
+        assert response.provider == "openai"
+        assert response.model == settings.AI_MODEL_NAME
+        assert response.token_usage == TokenUsage(
+            prompt_tokens=11, completion_tokens=7, total_tokens=18
+        )
+        assert response.duration_ms >= 0
+
+    def test_generate_uses_estimated_tokens_when_usage_is_missing(self):
+        provider, _, _ = self._make_provider(
+            make_openai_completion("Generated response", None, None)
+        )
+
+        response = asyncio.get_event_loop().run_until_complete(
+            provider.generate("one two three")
+        )
+
+        assert response.token_usage.prompt_tokens == estimate_tokens("one two three")
+        assert response.token_usage.completion_tokens == estimate_tokens("Generated response")
+
+    def test_generate_rejects_missing_api_key_without_calling_sdk(self):
+        with patch.object(settings, "OPENAI_API_KEY", None):
+            with patch("app.providers.openai_provider.AsyncOpenAI") as client_class:
+                provider = OpenAIProvider()
+                with pytest.raises(InvalidAPIKeyError):
+                    asyncio.get_event_loop().run_until_complete(provider.generate("prompt"))
+
+        client_class.assert_not_called()
+
+    @pytest.mark.parametrize(
+        ("exception_name", "expected_exception"),
+        [
+            ("AuthenticationError", InvalidAPIKeyError),
+            ("APITimeoutError", AITimeoutError),
+            ("RateLimitError", AIRateLimitError),
+            ("APIConnectionError", ProviderUnavailableError),
+            ("APIStatusError", ProviderUnavailableError),
+        ],
+    )
+    def test_generate_translates_sdk_errors(self, exception_name, expected_exception):
+        class FakeSDKError(Exception):
+            pass
+
+        provider, client, _ = self._make_provider(make_openai_completion())
+        client.chat.completions.create.side_effect = FakeSDKError("sdk failure")
+
+        with patch("app.providers.openai_provider." + exception_name, FakeSDKError):
+            with pytest.raises(expected_exception):
+                asyncio.get_event_loop().run_until_complete(provider.generate("prompt"))
+
+    @pytest.mark.parametrize(
+        "completion",
+        [
+            SimpleNamespace(choices=[], usage=None),
+            make_openai_completion(None),
+            make_openai_completion("   "),
+        ],
+    )
+    def test_generate_rejects_malformed_sdk_responses(self, completion):
+        provider, _, _ = self._make_provider(completion)
+
+        with pytest.raises(InvalidAIResponseError):
+            asyncio.get_event_loop().run_until_complete(provider.generate("prompt"))
 
 
 # ---------------------------------------------------------------------------
